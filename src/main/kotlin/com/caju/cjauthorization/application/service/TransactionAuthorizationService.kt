@@ -5,7 +5,6 @@ import com.caju.cjauthorization.domain.model.BalanceType
 import com.caju.cjauthorization.domain.model.Transaction
 import com.caju.cjauthorization.domain.port.BalanceRepository
 import com.caju.cjauthorization.domain.port.TransactionRepository
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -31,6 +30,7 @@ class TransactionAuthorizationService(
                     logger.error("Saldo não encontrado para a transação, retornando erro 07")
                     "07" to "Erro ao processar transação"
                 }
+
                 else -> {
                     logger.info("Saldo encontrado para a categoria ${saldo.type}: ${saldo.amount}")
                     if (saldo.amount >= transaction.amount) {
@@ -74,12 +74,17 @@ class TransactionAuthorizationService(
     }
 
     private fun resolveMCC(merchant: String, mcc: String): String {
-        return when {
-            merchant.contains("UBER EATS", ignoreCase = true) -> "5411"
-            merchant.contains("UBER TRIP", ignoreCase = true) -> "4121"
-            merchant.contains("PAG*JoseDaSilva", ignoreCase = true) -> "6011"
-            merchant.contains("PICPAY*BILHETEUNICO", ignoreCase = true) -> "4111"
-            else -> mcc
+        val merchantMccMap = mapOf(
+            "UBER EATS" to "5411",
+            "UBER TRIP" to "4121",
+            "PAG*JoseDaSilva" to "6011",
+            "PICPAY*BILHETEUNICO" to "4111"
+        )
+        for ((merchantPattern, mccValue) in merchantMccMap) {
+            if (merchant.contains(merchantPattern, ignoreCase = true)) {
+                return mccValue
+            }
         }
+        return mcc
     }
 }
