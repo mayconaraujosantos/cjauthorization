@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service
 import java.math.BigDecimal
 
 
+private const val ERRO_AO_PROCESSAR_TRANSACAO = "Erro ao processar transação"
+
 @Service
 class TransactionAuthorizationService(
     private val balanceRepository: BalanceRepository,
@@ -22,13 +24,13 @@ class TransactionAuthorizationService(
             if (transaction.amount <= BigDecimal.ZERO) {
                 logger.warn("Valor inválido para a transação: ${transaction.amount}. A transação será rejeitada.")
                 // Retorna erro com código "07", já que o erro é inesperado.
-                return mapOf("code" to "07", "message" to "Erro ao processar transação")
+                return mapOf("code" to "07", "message" to ERRO_AO_PROCESSAR_TRANSACAO)
             }
 
             val (code, message) = when (val saldo = getBalanceForTransaction(transaction)) {
                 null -> {
                     logger.error("Saldo não encontrado para a transação, retornando erro 07")
-                    "07" to "Erro ao processar transação"
+                    "07" to ERRO_AO_PROCESSAR_TRANSACAO
                 }
 
                 else -> {
@@ -48,7 +50,7 @@ class TransactionAuthorizationService(
             mapOf("code" to code, "message" to message)
         } catch (e: Exception) {
             logger.error("Erro inesperado ao processar a transação: ${e.message}", e)
-            mapOf("code" to "07", "message" to "Erro ao processar transação")
+            mapOf("code" to "07", "message" to ERRO_AO_PROCESSAR_TRANSACAO)
         }
     }
 
